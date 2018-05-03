@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -27,12 +28,26 @@ func main() {
 		log.Fatalf("could not get registry password")
 	}
 
+	imageList := os.Getenv("RETAGGER_CONFIG")
+	if imageList == "" {
+		log.Fatalf("could not get image list")
+	}
+
 	login := exec.Command("docker", "login", "-u", registryUsername, "-p", registryPassword, registry)
 	if err := Run(login); err != nil {
 		log.Fatalf("could not login to registry: %v", err)
 	}
 
-	for _, image := range Images {
+	raw, err := ioutil.ReadFile(imageList)
+	if err != nil {
+		log.Fatalf("could not read file: %v", err)
+	}
+
+	images, err := ParseImageListConfig(raw)
+	if err != nil {
+		log.Fatalf("could not parse images: %v", err)
+	}
+	for _, image := range images {
 		for _, tag := range image.Tags {
 			log.Printf("managing: %v, %v, %v", image.Name, tag.Sha, tag.Tag)
 
