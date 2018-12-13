@@ -33,7 +33,7 @@
     tag: "0.18"
 - name: fluent/fluentd
   tags:
-  - sha: 19dcf7732d1c4f2aec54c3c4adfe85e1913e5e3bceae631addcaaf582564aca6
+  - sha: 19dcaf7732d1c4f2aec54c3c4adfe85e1913e5e3bceae631addcaaf582564aca6
     tag: "v1.3.1"
 - name: gcr.io/google_containers/defaultbackend
   tags:
