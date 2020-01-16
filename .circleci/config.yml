@@ -29,10 +29,10 @@ jobs:
           name: compile e2e test
           command: |
             docker run --rm -it \
-            -v $PWD:/go/src/github.com/giantswarm/retagger \
+            -v $(go env GOPATH):/go/src \
             -w /go/src/github.com/giantswarm/retagger \
             quay.io/giantswarm/golang:1.13.0 \
-            go build && go test -c -tags e2e ./integration/test/e2e
+            go test -c -tags e2e ./integration/test/e2e
 
       - persist_to_workspace:
           root: .
