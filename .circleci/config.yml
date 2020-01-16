@@ -29,7 +29,7 @@ jobs:
           name: compile e2e test
           command: |
             docker run --rm -it \
-            -v $(go env GOPATH):/go/src \
+            -v /home/circleci/.go_workspace:/go/src \
             -w /go/src/github.com/giantswarm/retagger \
             quay.io/giantswarm/golang:1.13.0 \
             go test -c -tags e2e ./integration/test/e2e
