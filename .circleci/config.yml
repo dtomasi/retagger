@@ -15,18 +15,16 @@ jobs:
             giantswarm/yamllint \
             -d '{extends: default, rules: {line-length: {max: 200}, document-start: disable, indentation: {spaces: 0}}}' \
             images.yaml
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./integration
 
   build-e2e:
     machine: true
     steps:
-      - attach_workspace:
-          at: .
+      - checkout
       - run:
-          name: compile e2e test
+          name: Build to fetch e2e dependencies
+          command: go build
+      - run:
+          name: Compile e2e test
           command: |
             docker run --rm -it \
             -v /usr/local/go_workspace:/go/src \
@@ -125,14 +123,12 @@ build_and_retag:  &build_and_retag
             only: master
         requires:
           - go-build-retagger
-          - build-e2e
     - retagAliyun:
         filters:
           branches:
             only: master
         requires:
           - go-build-retagger
-          - build-e2e
 
 workflows:
   # version: 2
