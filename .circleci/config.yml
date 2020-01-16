@@ -16,9 +16,9 @@ jobs:
             -d '{extends: default, rules: {line-length: {max: 200}, document-start: disable, indentation: {spaces: 0}}}' \
             images.yaml
       - persist_to_workspace:
-        root: .
-        paths:
-          - ./integration
+          root: .
+          paths:
+            - ./integration
 
   build-e2e:
     machine: true
