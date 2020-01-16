@@ -1,12 +1,10 @@
-version: 2.1
-orbs:
-  architect: giantswarm/architect@0.4.5
-
+version: 2
 jobs:
-  validate-yaml:
+  build:
     machine: true
     steps:
       - checkout
+
       - run:
           name: Validate YAML
           command: |
@@ -16,18 +14,22 @@ jobs:
             -d '{extends: default, rules: {line-length: {max: 200}, document-start: disable, indentation: {spaces: 0}}}' \
             images.yaml
 
-  build-e2e:
-    machine: true
-    steps:
-      - checkout
       - run:
-          name: Build to fetch e2e dependencies
-          command: go build
+          name: Install architect
+          command: |
+            wget -q $(curl -sS -H "Authorization: token $RELEASE_TOKEN" https://api.github.com/repos/giantswarm/architect/releases/latest | grep browser_download_url | head -n 1 | cut -d '"' -f 4)
+            chmod +x ./architect
+            ./architect version
+
       - run:
-          name: Compile e2e test
+          name: architect build
+          command: ./architect build
+
+      - run:
+          name: compile e2e test
           command: |
             docker run --rm -it \
-            -v /usr/local/go_workspace:/go/src \
+            -v $PWD:/go/src/github.com/giantswarm/retagger \
             -w /go/src/github.com/giantswarm/retagger \
             quay.io/giantswarm/golang:1.13.0 \
             go test -c -tags e2e ./integration/test/e2e
@@ -35,6 +37,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
+            - ./retagger
             - ./e2e.test
             - ./images-e2e.yaml
             - ./images.yaml
@@ -100,38 +103,28 @@ jobs:
 
 build_and_retag:  &build_and_retag
   jobs:
-    - validate-yaml
-    - architect/go-build:
-        name: go-build-retagger
-        binary: retagger
-        os: linux
-        requires:
-          - validate-yaml
-    - build-e2e:
-        requires:
-          - go-build-retagger
+    - build
     - e2eQuay:
         filters:
           branches:
             ignore: master
         requires:
-          - go-build-retagger
-          - build-e2e
+          - build
     - retagQuay:
         filters:
           branches:
             only: master
         requires:
-          - go-build-retagger
+          - build
     - retagAliyun:
         filters:
           branches:
             only: master
         requires:
-          - go-build-retagger
+          - build
 
 workflows:
-  # version: 2
+  version: 2
   build_retag: 
     <<: *build_and_retag
 
